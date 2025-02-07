@@ -28,16 +28,19 @@ const createPicture = async (num = 1) => {
         let imgUrl = await getUrl()
         let imgContainer = document.createElement('div');
         imgContainer.classList.add('imgContainer');
-        imgContainer.innerHTML = `<img src="${imgUrl}" class="catImg"></img>`
+        imgContainer.innerHTML = `
+        <img src="${imgUrl}" class="catImg"></img>
+        <div class="favoriteBtnContainer">
+            <button type="button" class="addFaveBtn"><i class="fa-solid fa-heart"></i></button>
+            <span class="hoverText">Add to favorites</span>
+        </div>`;
         imgContainer.appendChild(createVoteContainer());
         imgContainer.appendChild(createCommentBox())
         imagesContainer.appendChild(imgContainer);
 
-        // let upvoteBtn = document.getElementById('upvote');
-        // console.log(upvoteBtn);
-        // upvoteBtn.addEventListener('click', upvote);
-        // let downvoteBtn = document.getElementById('downvote');
-        // upvoteBtn.addEventListener('click', downvote);
+        let voteButton = imgContainer.children[1].children[0];
+        voteButton.addEventListener('click', addOrRemoveFavorite);
+
     }
 
 
@@ -181,14 +184,114 @@ const upvoteOrDownvote = (event) => {
 
 }
 
+const addOrRemoveFavorite = (event) => {
+// localStorage.clear();
+    if (event.currentTarget.classList.contains('addFaveBtn')) {
+        let imgContainer = event.currentTarget.parentElement.parentElement;
+        let favoritesArrUnparsed = localStorage.getItem('favoritesArr');
+        let favoritesArr;
+        if (!favoritesArrUnparsed) {
+            favoritesArr = [];
+        }
+        else {
+            favoritesArr = JSON.parse(favoritesArrUnparsed);
+        }
+
+        if (event.currentTarget.classList.contains('favorited')) {
+            event.currentTarget.classList.remove('favorited');
+            let faveId = imgContainer.dataset.favoriteid;
+            let favePhoto = document.querySelector(`#favoritesContainer [data-favoriteid="${faveId}"`);
+            favePhoto.remove();
+            for (let i = 0; i < favoritesArr.length; i++) {
+                if (favoritesArr[i].includes(`data-favoriteid="${faveId}"`)){
+                    favoritesArr.splice(i, 1);
+
+                    break;
+                }
+            }
+            localStorage.setItem('favoritesArr', JSON.stringify(favoritesArr));
+
+        }
+        else {
+            event.currentTarget.classList.add('favorited');
+            let favoritesContainer = document.querySelector('#favoritesContainer');
+
+            imgContainer.setAttribute('data-favoriteid', getNewFavoriteId(favoritesArr));
+            favoritesContainer.innerHTML += imgContainer.outerHTML;
+            favoritesArr.push(imgContainer.outerHTML);
+            localStorage.setItem('favoritesArr', JSON.stringify(favoritesArr));
+            // favoritesArr.push({          //using an object could make searching for a specific favotie faster
+            //     favoriteId: imgContainer.getAttribute('favoriteId'),     //but it doesn't help when we have to delete it from the HTML
+            //     outerHTML: imgContainer.outerHTML  // Store the HTML of the element
+            // })
+
+        }
+
+
+    }
+
+}
+
+const getNewFavoriteId = (favoritesArr) => {
+    let lastEl = favoritesArr[favoritesArr.length - 1];
+    if(!lastEl) {
+        return 1;
+    }
+
+    let tempDiv = document.createElement('div');        //you have to insert the stored string HTML back into a DOM element to read its data attributes
+    tempDiv.innerHTML = lastEl;
+    let faveNum = tempDiv.children[0].dataset.favoriteid;
+    return Number(faveNum) + 1;
+}
+
+const favoritesSectionInitializer = () => {
+
+    let favoritesSection = document.createElement('section');
+    favoritesSection.id = "favoritesSection";
+    favoritesSection.innerHTML =
+    `
+    <div id="showHideFavesBtnContainer">
+        <button type="button" id="showHideFavesBtn">
+            <span id="showFaves">Show favorites</span>
+            <span id="hideFaves">Hide favorites</span>
+        </button>
+    </div>
+    <div id="favoritesContainer">
+    </div>
+`
+    document.body.appendChild(favoritesSection);
+
+    let favoritesContainer = document.querySelector('#favoritesContainer');
+    let favoritesArr = localStorage.getItem('favoritesArr')
+    if (favoritesArr) {
+        let parsedFavorites = JSON.parse(favoritesArr);
+        parsedFavorites.forEach(element => {
+            favoritesContainer.innerHTML += element;
+        }); {
+
+        }
+    }
+    //need to implement these event listeners for each favorite photo when they are created.
+    // removeBtn.addEventListener('click', removeComment);
+    // textBox.addEventListener('click', hideDefaultText);
+    // textBox.addEventListener('blur', addDefaultText);
+    // submitBtn.addEventListener('click', createComment);
+    // voteButton.addEventListener('click', addOrRemoveFavorite);
+    // voteContainer.addEventListener('click', upvoteOrDownvote);
+}
+
+
 
 window.addEventListener("DOMContentLoaded", event =>  {
+    // localStorage.clear();
     let h1 = document.createElement('h1');
     h1.innerText = 'Catstagram';
     document.body.appendChild(h1);
     let imagesContainer = document.createElement('section');
     imagesContainer.id = "imagesContainer"
     document.body.appendChild(imagesContainer);
+
+    favoritesSectionInitializer();
     createPicture();
     createNewSetContainer();
 
@@ -198,3 +301,28 @@ window.addEventListener("DOMContentLoaded", event =>  {
 
 
 })
+
+
+// function storeGame() {
+//     localStorage.setItem("turn", currentSymbol);
+//     localStorage.setItem("movesLeft", moves);
+//     localStorage.setItem("boardArr", JSON.stringify(boardArrVersion));
+//     const boardHtml = document.getElementById("board");
+//     let storedHtml = boardHtml.innerHTML;
+//     localStorage.setItem("board", storedHtml);
+//   };
+
+
+// if (localStorage.getItem('board')) {
+//     let savedBoardArr = JSON.parse(localStorage.getItem('boardArr'));
+//     let savedHtml = localStorage.getItem('board');
+//     let savedMoveCount = localStorage.getItem('movesLeft');
+//     let savedTurnSymbol = localStorage.getItem('turn');
+//     board.innerHTML = savedHtml;
+//     moves = savedMoveCount;
+//     boardArrVersion = savedBoardArr;
+//     currentSymbol = savedTurnSymbol;
+// }
+
+
+// document.querySelector('[data-attribute="value"]');
