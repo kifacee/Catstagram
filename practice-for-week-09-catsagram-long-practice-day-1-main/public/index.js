@@ -1,3 +1,29 @@
+/*CURENT ISSUES/TASKS
+the popularity score <h2> disappears when putting a photo in favorites.
+should re do the functions so they create the HTML element if you give it the
+-img url
+-popularity count
+-favorite status and favorite ID num
+-comment list
+possibly as an object with keys that are the favorite ID num, and then the value of those keys are objects with the other properties as their keys.
+This will allow event listeners to be created in these functions so i don't have to re create the event listeners in the favorites section
+this will mean i have to change how i'm storing data, but it will be in a cleaner way
+currently i'm storing full HTML code, but if i just store the bullet points above, i can pass those into the builder functions to recreate them.
+this will allow me to build the favorite image containers one at a time based on the favorite ID num.
+I want to make the favorites section (and possible the main new photos section) a horizontal scroll instead of vertical
+the favorites section could just be a populated list in a container with horizontal scroll & overflow.
+but the main section could have left and right buttons, the right button would generate a new photo and the left button would go back
+probably only store one back photo at a time for starters.
+because i will only have 3 elemets at once (center, previous, next), i can make smooth sliding transitions from left to right for each photo.
+*/
+
+
+
+
+
+
+
+
 // Your code here
 
 // const getUrl2 = () => {
@@ -31,15 +57,16 @@ const createPicture = async (num = 1) => {
         imgContainer.innerHTML = `
         <img src="${imgUrl}" class="catImg"></img>
         <div class="favoriteBtnContainer">
-            <button type="button" class="addFaveBtn"><i class="fa-solid fa-heart"></i></button>
+            <button type="button" class="addFaveBtn"><i class="fa-regular fa-heart"></i></button>
             <span class="hoverText">Add to favorites</span>
+            <span>Remove favorite</span>
         </div>`;
         imgContainer.appendChild(createVoteContainer());
         imgContainer.appendChild(createCommentBox())
         imagesContainer.appendChild(imgContainer);
 
-        let voteButton = imgContainer.children[1].children[0];
-        voteButton.addEventListener('click', addOrRemoveFavorite);
+        let faveButton = imgContainer.children[1].children[0];
+        faveButton.addEventListener('click', addOrRemoveFavorite);
 
     }
 
@@ -187,9 +214,15 @@ const upvoteOrDownvote = (event) => {
 const addOrRemoveFavorite = (event) => {
 // localStorage.clear();
     if (event.currentTarget.classList.contains('addFaveBtn')) {
+        let iconElement = event.currentTarget.children[0];
+        let favoriteBtnContainer = event.currentTarget.parentElement;
+        let addSpan = favoriteBtnContainer.children[1];
+        let removeSpan = favoriteBtnContainer.children[2];
         let imgContainer = event.currentTarget.parentElement.parentElement;
         let favoritesArrUnparsed = localStorage.getItem('favoritesArr');
         let favoritesArr;
+        let favoritesContainer = document.querySelector('#favoritesContainer');
+
         if (!favoritesArrUnparsed) {
             favoritesArr = [];
         }
@@ -199,22 +232,39 @@ const addOrRemoveFavorite = (event) => {
 
         if (event.currentTarget.classList.contains('favorited')) {
             event.currentTarget.classList.remove('favorited');
+            iconElement.classList.add('fa-regular');
+            iconElement.classList.remove('fa-solid');
+            removeSpan.classList.remove('hoverText');
+            addSpan.classList.add('hoverText');
+
             let faveId = imgContainer.dataset.favoriteid;
             let favePhoto = document.querySelector(`#favoritesContainer [data-favoriteid="${faveId}"`);
             favePhoto.remove();
             for (let i = 0; i < favoritesArr.length; i++) {
                 if (favoritesArr[i].includes(`data-favoriteid="${faveId}"`)){
-                    favoritesArr.splice(i, 1);
 
+                    console.log([...favoritesArr]);
+                    favoritesArr.splice(i, 1);
+                    console.log([...favoritesArr]);
                     break;
                 }
             }
             localStorage.setItem('favoritesArr', JSON.stringify(favoritesArr));
 
+
+            if (favoritesContainer.children.length === 0) {     // this currently doesn't work. for some reason, the element.remove step above
+                let noFaves = document.createElement('h2');     // leaves me with a broken array (says [ on logging it sometimes. other times [])
+                noFaves.innerText = "You have no favorites saved";
+                favoritesContainer.appendChild(noFaves);
+            }
         }
         else {
             event.currentTarget.classList.add('favorited');
-            let favoritesContainer = document.querySelector('#favoritesContainer');
+            iconElement.classList.remove('fa-regular');
+            iconElement.classList.add('fa-solid');
+            addSpan.classList.remove('hoverText');
+            removeSpan.classList.add('hoverText');
+
 
             imgContainer.setAttribute('data-favoriteid', getNewFavoriteId(favoritesArr));
             favoritesContainer.innerHTML += imgContainer.outerHTML;
@@ -225,6 +275,12 @@ const addOrRemoveFavorite = (event) => {
             //     outerHTML: imgContainer.outerHTML  // Store the HTML of the element
             // })
 
+
+            //remove the h2 saying you have no favorites
+            let noFavesEl = favoritesContainer.querySelector('h2');
+            if (noFavesEl) {
+                noFavesEl.remove();
+            }
         }
 
 
@@ -244,6 +300,31 @@ const getNewFavoriteId = (favoritesArr) => {
     return Number(faveNum) + 1;
 }
 
+const showHideFaves = (event) => {
+    let showSpan = event.currentTarget.children[0];
+    let hideSpan = event.currentTarget.children[1];
+
+    let container = document.querySelector('#favoritesContainer');
+    if (container.classList.contains('hidden')) {
+        container.classList.remove('hidden');
+        showSpan.classList.add('hidden');
+        hideSpan.classList.remove('hidden');
+
+        if (container.children.length === 0) {
+            let noFaves = document.createElement('h2');
+            noFaves.innerText = "You have no favorites saved";
+            container.appendChild(noFaves);
+         }
+    }
+    else {
+        container.classList.add('hidden');
+        showSpan.classList.remove('hidden');
+        hideSpan.classList.add('hidden');
+    }
+
+
+}
+
 const favoritesSectionInitializer = () => {
 
     let favoritesSection = document.createElement('section');
@@ -253,31 +334,62 @@ const favoritesSectionInitializer = () => {
     <div id="showHideFavesBtnContainer">
         <button type="button" id="showHideFavesBtn">
             <span id="showFaves">Show favorites</span>
-            <span id="hideFaves">Hide favorites</span>
+            <span id="hideFaves" class="hidden">Hide favorites</span>
         </button>
     </div>
-    <div id="favoritesContainer">
-    </div>
 `
-    document.body.appendChild(favoritesSection);
 
-    let favoritesContainer = document.querySelector('#favoritesContainer');
+
+    let favoritesContainer = document.createElement('div');
+    favoritesContainer.id = 'favoritesContainer';
+    favoritesContainer.classList.add('hidden');
     let favoritesArr = localStorage.getItem('favoritesArr')
     if (favoritesArr) {
         let parsedFavorites = JSON.parse(favoritesArr);
         parsedFavorites.forEach(element => {
-            favoritesContainer.innerHTML += element;
-        }); {
+            let imgContainer = document.createElement('div');
+            imgContainer.innerHTML = element;
+            favoritesContainer.appendChild(imgContainer);
 
-        }
+            const voteContainer = imgContainer.querySelector('.voteContainer');
+            if (voteContainer) {
+                voteContainer.addEventListener('click', upvoteOrDownvote);
+            }
+
+            const faveButton = imgContainer.querySelector('.addFaveBtn');
+            if (faveButton) {
+                faveButton.addEventListener('click', addOrRemoveFavorite);
+            }
+
+            const commentSubmitBtn = imgContainer.querySelector('.submitComment');
+            if (commentSubmitBtn) {
+                commentSubmitBtn.addEventListener('click', createComment);
+            }
+
+            const textBox = imgContainer.querySelector('.inputText');
+            if (textBox) {
+                textBox.addEventListener('click', hideDefaultText);
+                textBox.addEventListener('blur', addDefaultText);
+            }
+
+            const commentDeleteBtn = imgContainer.querySelectorAll('.removeCommentBtn');
+            if (commentDeleteBtn) {
+                for (let i = 0; i < commentDeleteBtn.length; i++) {
+                    commentDeleteBtn[i].addEventListener('click', removeComment);
+                }
+
+            }
+        });
+
     }
-    //need to implement these event listeners for each favorite photo when they are created.
-    // removeBtn.addEventListener('click', removeComment);
-    // textBox.addEventListener('click', hideDefaultText);
-    // textBox.addEventListener('blur', addDefaultText);
-    // submitBtn.addEventListener('click', createComment);
-    // voteButton.addEventListener('click', addOrRemoveFavorite);
-    // voteContainer.addEventListener('click', upvoteOrDownvote);
+
+    favoritesSection.appendChild(favoritesContainer);
+    document.body.appendChild(favoritesSection);
+
+
+
+
+
 }
 
 
@@ -298,31 +410,38 @@ window.addEventListener("DOMContentLoaded", event =>  {
     let newSetBtn = document.getElementById('newSetBtn');
     newSetBtn.addEventListener('click', getNewSet);
 
+    let showHideFavesBtn = document.querySelector('#showHideFavesBtn');
+    showHideFavesBtn.addEventListener('click', showHideFaves);
 
 
 })
 
 
-// function storeGame() {
-//     localStorage.setItem("turn", currentSymbol);
-//     localStorage.setItem("movesLeft", moves);
-//     localStorage.setItem("boardArr", JSON.stringify(boardArrVersion));
-//     const boardHtml = document.getElementById("board");
-//     let storedHtml = boardHtml.innerHTML;
-//     localStorage.setItem("board", storedHtml);
-//   };
+
+const storeFavoritesSection = () => {
+    if(JSON.parse(localStorage.getItem('favoritesArr')).length > 0) {
+        let favoritesContainer = document.querySelector('#favoritesContainer')
+        let newFavoritesArr = [];
+        let imgContainers = favoritesContainer.children;
+        console.log(imgContainers[0]);
+        for (let i = 0; i < imgContainers.length; i++) {
+            newFavoritesArr.push(imgContainers[i].outerHTML);
+        }
+        localStorage.setItem('favoritesArr', JSON.stringify(newFavoritesArr));
+        console.log(JSON.parse(localStorage.getItem('favoritesArr')));
+    }
+
+}
+
+window.addEventListener('beforeunload', storeFavoritesSection)
+//the storeFavoritesSection function is needed due to how i implemented the favorites section.
+//when a photo is favorited, it is copied and placed into the favorites section.
+//but if someone interacts with the favorited photo in the favorited section, that needs to be saved with this function
+//a better implementation would be to store individual components as they occur in the event listener function
+//and build the favorites section not by copying the html, but using dynamic functions that use these individual components.
 
 
-// if (localStorage.getItem('board')) {
-//     let savedBoardArr = JSON.parse(localStorage.getItem('boardArr'));
-//     let savedHtml = localStorage.getItem('board');
-//     let savedMoveCount = localStorage.getItem('movesLeft');
-//     let savedTurnSymbol = localStorage.getItem('turn');
-//     board.innerHTML = savedHtml;
-//     moves = savedMoveCount;
-//     boardArrVersion = savedBoardArr;
-//     currentSymbol = savedTurnSymbol;
-// }
+
 
 
 // document.querySelector('[data-attribute="value"]');

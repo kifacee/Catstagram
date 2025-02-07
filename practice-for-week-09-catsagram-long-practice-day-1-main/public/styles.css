@@ -5,15 +5,35 @@ html {
     margin-top: 30px;
     margin-bottom: 20px;
     min-width: 620px;
+    background-color: #7092be;
 }
 
-#imagesContainer {
+h1 {
+    border-radius: 12px;
+    color:#89dcb2;
+    padding: 10px 40px;
+    background-color: rgb(16, 59, 102);
+
+    width: fit-content;
+    margin: auto;
+    text-align: center;
+    min-width: 320px;
+}
+
+#imagesContainer,
+#favoritesContainer {
     margin-top: 30px;
+    padding-bottom: 5px;
     background-color: rgb(21, 49, 21);
     padding-top: 10px;
     min-width: 620px;
+    margin-bottom: 10px;
 }
 
+#favoritesContainer {
+    margin-top: 10px;
+    margin-bottom: 30px;
+}
 .imgContainer {
     max-width: 80%;
     margin: auto;
@@ -38,16 +58,7 @@ html {
 
 }
 
-h1 {
-    width: fit-content;
-    margin: auto;
-    text-align: center;
-    min-width: 620px;
-}
 
-/* img {
-    display: block;
-} */
 
 .btnContainer {
     display: flex;
@@ -129,7 +140,7 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: center;
-    color: slateblue;
+    color: yellow;
     border-radius: 8px;
     aspect-ratio: 1;
     width: 20px;
@@ -139,6 +150,17 @@ h1 {
 
 }
 
+button {
+    background-color: rgb(16, 59, 102);
+    border-radius: 12px;
+    color: yellow;
+    padding: 3px 8px;
+}
+
+button:hover {
+    padding-left: 10px;
+    padding-right: 10px;
+}
 
 .hoverText {
     display: none;
@@ -168,6 +190,9 @@ h1 {
 
 }
 
+
+
+
 .fa-heart {
     font-size: 30px;
     color: aqua;
@@ -181,4 +206,34 @@ h1 {
 .addFaveBtn {
     background-color: transparent;
     border: none;
+}
+
+.favoriteBtnContainer > span:not(.hoverText) {
+    display: none;
+}
+
+.hidden {
+    display: none;
+}
+
+#newSetContainer {
+    position: relative;
+}
+#newSetContainer .btnContainer {
+    justify-content: flex-end;
+    gap: 10px;
+    position: absolute;
+    top: -20px;
+    right: 0%;
+}
+
+
+select {
+    background-color: rgb(16, 59, 102);
+    color: yellow;
+}
+
+input {
+    background-color: rgb(16, 59, 102);
+    color: rgb(152, 251, 190);
 }
